@@ -93,52 +93,54 @@ class AutoTranslatorWorker {
   }
 
   // Function to track cells and calculate progress
-  async createNewFile(sheetUint8Data) {
+  createNewFile(sheetUint8Data) {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(sheetUint8Data);
+    
+    workbook.xlsx.load(sheetUint8Data).then(() => {
+      const unknownSheets = [];
   
-    const unknownSheets = [];
+      workbook.eachSheet((worksheet) => {
+        const sheetName = worksheet.name;
+        const columnsToCheck = this.getColumnsForSheet(sheetName);
   
-    workbook.eachSheet((worksheet) => {
-      const sheetName = worksheet.name;
-      const columnsToCheck = this.getColumnsForSheet(sheetName);
+        if (columnsToCheck) {
+          const [columnToBeTranslated, translatedColumn] = columnsToCheck[0];
   
-      if (columnsToCheck) {
-        const [columnToBeTranslated, translatedColumn] = columnsToCheck[0];
+          // Loop through the rows in the specified columns and check if they are to be translated
+          worksheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
+            if (rowIndex > 1) {
+              const cellToBeTranslated = row.getCell(columnToBeTranslated);
+              const cellToTheRight = row.getCell(translatedColumn);
   
-        // Loop through the rows in the specified columns and check if they are to be translated
-        worksheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
-          if (rowIndex > 1) {
-            const cellToBeTranslated = row.getCell(columnToBeTranslated);
-            const cellToTheRight = row.getCell(translatedColumn);
-  
-            if (this.isCellToBeCounted(cellToBeTranslated) && sheetName === 'numa') {
-              // console.log("aaa");
-              if (this.isCellOkayToOverwrite(cellToTheRight)) {
-                // console.log("bbb");
-                // in the new file, set the cell to the right to 'hello world'
-                cellToTheRight.value = 'hello world';
-                cellToTheRight.style.fill = {
-                  type: 'pattern',
-                  pattern: 'solid',
-                  fgColor: { argb: 'FFD6F4F2' },
-                  bgColor: { argb: 'FFD6F4F2' }
-                };
+              if (this.isCellToBeCounted(cellToBeTranslated) && sheetName === 'numa') {
+                // console.log("aaa");
+                if (this.isCellOkayToOverwrite(cellToTheRight)) {
+                  // console.log("bbb");
+                  // in the new file, set the cell to the right to 'hello world'
+                  cellToTheRight.value = 'hello world';
+                  cellToTheRight.style.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FFD6F4F2' },
+                    bgColor: { argb: 'FFD6F4F2' }
+                  };
+                }
               }
             }
-          }
-        });
-      } else {
-        unknownSheets.push(sheetName);
-      }
-    });
+          });
+        } else {
+          unknownSheets.push(sheetName);
+        }
+      });
   
-    // Convert the workbook to binary data
-    const buffer = await workbook.xlsx.writeBuffer();
-    self.postMessage({
-      finished: true,
-      fileData: [buffer],
-      unknownSheets: unknownSheets,
+      // Convert the workbook to binary data
+      workbook.xlsx.writeBuffer().then((buffer) => {
+        self.postMessage({
+          finished: true,
+          fileData: [buffer],
+          unknownSheets: unknownSheets,
+        });
+      });
     });
   }
 }
