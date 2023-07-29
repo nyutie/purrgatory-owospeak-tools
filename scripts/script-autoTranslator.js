@@ -1,49 +1,58 @@
 class AutoTranslator {
   constructor() {
-
+    this.fileData = null;
   }
 
-  applyRules(sheetInput) {
+  download() {
+    console.log(this.fileData)
+    const blob = new Blob(this.fileData, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-    const outputDiv = document.getElementById('outputCell');
+    const link = document.createElement('a');
+    link.download = `${window.main.selectedSheetData.title}-owoified.xlsx`;
+    link.href = URL.createObjectURL(blob);
+    console.log(link.href);
+    link.click();
+  }
+
+  applyRules(sheetInput, rules) {
+    const outputDiv = document.getElementById('outputAutoTranslator');
     outputDiv.innerHTML = 'processing sheet...';
 
     // reset text saying downloading or converting
     window.main.resetSheetReadyText();
 
     // Run the cellCounter function in the separate Web Worker thread
-    this.cellCounterWorker = new Worker('scripts/script-cellTrackerWorker.js');
+    this.cellCounterWorker = new Worker('scripts/script-autoTranslatorWorker.js');
     this.cellCounterWorker.onmessage = (event) => {
-      const progressData = event.data;
+      if (event.data.error) {
+        outputDiv.innerHTML = '<br>' + event.data.error;
+        return;
+      }
 
-      if (progressData.error) {
-        outputDiv.innerHTML = '<br>' + progressData.error;
+      if (!event.data.finished) {
+        outputDiv.innerHTML = '<br>Unknown error!';
         return;
       }
 
       // Clear the output div
       outputDiv.innerHTML = '';
 
-      // Display each sheet's progress
-      for (const sheetName in progressData.sheetsProgress) {
-        const sheetProgress = progressData.sheetsProgress[sheetName];
-        outputDiv.innerHTML += `cells translated in '${sheetName}': ${sheetProgress}<br>`;
-      }
-
-      if (progressData.unknownSheets.length > 0) {
+      if (event.data.unknownSheets.length > 0) {
         outputDiv.innerHTML += `<br><br>unknown sheets: `;
-        progressData.unknownSheets.forEach((sheetName) => {
+        event.data.unknownSheets.forEach((sheetName) => {
           outputDiv.innerHTML += `'${sheetName}', `;
-        })
+        });
         outputDiv.innerHTML = outputDiv.innerHTML.slice(0, -2); // Remove the trailing comma and space
         outputDiv.innerHTML += `<br><br>`;
       }
 
-      // Display the total progress
-      outputDiv.innerHTML += `<br>total progress: ${progressData.totalProgress.toFixed(2)}%`;
+      outputDiv.innerHTML += 'file ready for download.'
+
+      this.fileData = event.data.fileData;
+      window.main.ui.autoTranslator.enableDownloadButton(true);
 
       // tell main we're done
-      window.main.finishedProcessingCellProgress();
+      // window.main.finishedProcessingCellProgress();
     };
 
     // Send message to the worker to start processing

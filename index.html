@@ -57,7 +57,7 @@
         <div class="container">
           <label for="autoTranslator:">auto translator:</label>
           <div class="divider"></div>
-          <fieldset id="auto-translator-settings" class="smaller-text">
+          <fieldset id="auto-translator-settings" class="auto-translator-settings">
             <legend>settings</legend>
             <div class="rules-title">letter rules:</div>
             <div class="left-line">
@@ -85,10 +85,20 @@
               <label for="rule9">sure ➝ shyure</label><br>
               <input type="checkbox" id="rule10" name="wordRule" value="alright ➝ alwight" checked>
               <label for="rule10">alright ➝ alwight</label><br>
-              <input type="checkbox" id="rule11" name="wordRule" value="i'll ➝ i'w" checked>
-              <label for="rule11">i'll ➝ i'w</label><br>
-              <input type="checkbox" id="rule12" name="wordRule" value="spelled ➝ spewt" checked>
-              <label for="rule12">spelled ➝ spewt</label><br>
+              <input type="checkbox" id="rule11" name="wordRule" value="spelled ➝ spewt" checked>
+              <label for="rule11">spelled ➝ spewt</label><br>
+              <input type="checkbox" id="rule12" name="wordRule" value="your ➝ your" checked>
+              <label for="rule12">your ➝ your</label><br>
+              <input type="checkbox" id="rule13" name="wordRule" value="you're ➝ you're" checked>
+              <label for="rule13">you're ➝ you're</label><br>
+              <input type="checkbox" id="rule14" name="wordRule" value="flowers ➝ flowehs" checked>
+              <label for="rule14">flowers ➝ flowehs</label><br>
+            </div>
+            <div class="invisible-divider-small"></div>
+            <div class="rules-title">other rules:</div>
+            <div class="left-line">
+              <input type="checkbox" id="rule15" name="otherRule" value="ll ➝ ll" checked>
+              <label for="rule15">ll ➝ ll</label><br>
             </div>
           </fieldset>
           <div class="invisible-divider-small"></div>
@@ -99,7 +109,7 @@
           <div id="outputAutoTranslator" class="output"></div>
           <div class="invisible-divider-small"></div>
           <div class="center-horizontal">
-            <button id="auto-translator-download-button" onclick="main.ui.autoTranslator.download()" disabled>download sheet</button>
+            <button id="auto-translator-download-button" onclick="main.autoTranslator.download()" disabled>download sheet</button>
           </div>
         </div>
       </div>

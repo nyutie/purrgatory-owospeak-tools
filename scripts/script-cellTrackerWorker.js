@@ -1,4 +1,4 @@
-importScripts('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js');
+importScripts("https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js");
 
 class CellTrackerWorker {
   constructor() {

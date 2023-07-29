@@ -1,4 +1,4 @@
-importScripts('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js');
+importScripts("https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js");
 
 class AutoTranslatorWorker {
   constructor() {
@@ -6,14 +6,13 @@ class AutoTranslatorWorker {
     self.onmessage = (event) => {
       const sheetInput = event.data;
       if (sheetInput.type === 'googlesheets') {
-        console.log(sheetInput);
-        this.trackCellsAndSendProgress(sheetInput.content);
-      }
-      else if (sheetInput.type === 'file') {
-        console.log(sheetInput);
-        this.trackCellsAndSendProgress(sheetInput.content);
+        // console.log(sheetInput);
+        this.createNewFile(sheetInput.content);
+      } else if (sheetInput.type === 'file') {
+        // console.log(sheetInput);
+        this.createNewFile(sheetInput.content);
       } else {
-        console.log(sheetInput)
+        // console.log(sheetInput);
         self.postMessage({ error: 'invalid sheetInput type?? something went very wrong...' });
       }
     };
@@ -37,7 +36,7 @@ class AutoTranslatorWorker {
       'natalie',
       'ending',
       'ending2',
-      'heaven'
+      'heaven',
     ];
     this.columnsBC = [
       'flashbacks',
@@ -55,13 +54,24 @@ class AutoTranslatorWorker {
   }
 
   // Function to check if the cell is to be translated
-  isCellToBeCounted(cellValue) {
-    return cellValue !== '' && cellValue !== '_pass';
+  isCellToBeCounted(cell) {
+    return cell.v !== undefined && cell.v !== '' && cell.v !== '_pass';
   }
 
-  // Function to check if the cell is translated
-  isCellTranslated(cellValue) {
-    return cellValue !== '';
+  // Function to check if the cell is not approved
+  isCellNotApproved(cell) {
+    if (cell.v === undefined || cell.v === '') {
+      return true;
+    }
+  
+    return this.isMarkedWithBackgroundColor(cell);
+  }
+
+  // Function to check if the cell has the background color #d6f4f2
+  isMarkedWithBackgroundColor(cell) {
+    const cellStyle = cell.s;
+    if (!cellStyle || !cellStyle.bgColor || !cellStyle.fgColor) return false;
+    if (cellStyle.bgColor.rgb === 'D6F4F2' && cellStyle.fgColor.rgb === 'D6F4F2') return true;
   }
 
   // Function to determine the columns based on sheet name
@@ -76,75 +86,57 @@ class AutoTranslatorWorker {
   }
 
   // Function to track cells and calculate progress
-  trackCellsAndSendProgress(sheetUint8Data) {
-    const workbook = XLSX.read(sheetUint8Data, { type: 'array' });
-
-    let totalOriginalCount = 0;
-    let totalTranslatedCount = 0;
+  createNewFile(sheetUint8Data) {
+    const workbook = XLSX.read(sheetUint8Data, { type: 'array', cellStyles: true });
+  
     const unknownSheets = [];
-
-    let sheetsProgress = {}; // stores string of 'translatedCells/originalCells' per sheet to be displayed
-
+  
     workbook.SheetNames.forEach((sheetName) => {
       const columnsToCheck = this.getColumnsForSheet(sheetName);
-
+  
       if (columnsToCheck) {
         const sheetsData = workbook.Sheets[sheetName];
-        let originalCells = 0;
-        let translatedCells = 0;
-
-        // Loop through the cells in the specified columns and check if they are to be counted
+  
+        // Loop through the cells in the specified columns and check if they are to be translated
         for (const [columnToBeTranslated, translatedColumn] of columnsToCheck) {
           let isFirstCell = true;
-
+  
           for (const cellReference in sheetsData) {
-            if (cellReference[0] === columnToBeTranslated) {
+            if (cellReference.startsWith(columnToBeTranslated)) {
               // ignore first cell in column:
               if (isFirstCell) {
                 isFirstCell = false;
                 continue;
               }
-
-              const cellValue = sheetsData[cellReference].v;
-
-              if (this.isCellToBeCounted(cellValue)) {
-                originalCells++;
-                totalOriginalCount++;
-
-                // Check the corresponding cell in the next column and count it as translated if it has some text
-                if (cellReference[0] === columnToBeTranslated) {
-                  const cellReferenceNext = `${String.fromCharCode(cellReference[0].charCodeAt(0) + 1)}${cellReference.substring(1)}`;
-                  let cellValueNext;
-                  try {
-                    cellValueNext = sheetsData[cellReferenceNext].v;
-                  } catch (TypeError) {
-                    cellValueNext = '';
-                  }
-                  if (this.isCellTranslated(cellValueNext)) {
-                    translatedCells++;
-                    totalTranslatedCount++;
-                  }
+  
+              const cellReferenceToTheRight = cellReference.replace(columnToBeTranslated, translatedColumn);
+  
+              if (this.isCellToBeCounted(sheetsData[cellReference]) && sheetName === 'numa') {
+                if (this.isCellNotApproved(sheetsData[cellReferenceToTheRight])) {
+                  // in the new file, set the cell to the right to 'hello world'
+                  sheetsData[cellReferenceToTheRight].v = 'hello world';
+                  sheetsData[cellReferenceToTheRight].t = 's';
+                  
+                  sheetsData[cellReferenceToTheRight].s.patternType = 'solid';
+                  sheetsData[cellReferenceToTheRight].s.bgColor = { rgb: 'D6F4F2' };
+                  sheetsData[cellReferenceToTheRight].s.fgColor = { rgb: 'D6F4F2' };
                 }
               }
             }
           }
         }
-        
-          sheetsProgress[sheetName] = `${translatedCells}/${originalCells}`;
-        } else {
-          unknownSheets.push(sheetName);
-        }
-      });
-
-      // Calculate total progress in %
-      const totalProgress = (totalTranslatedCount / totalOriginalCount) * 100;
-
-      // Post the progress data back to the main thread
-      self.postMessage({
-        totalProgress: totalProgress,
-        sheetsProgress: sheetsProgress,
-        unknownSheets: unknownSheets,
-      });
+      } else {
+        unknownSheets.push(sheetName);
+      }
+    });
+  
+    // Add the new file data to the message
+    const newFileData = XLSX.write(workbook, { type: 'array', bookType: 'xlsx', cellStyles: true });
+    self.postMessage({
+      finished: true,
+      fileData: [new Uint8Array(newFileData)],
+      unknownSheets: unknownSheets,
+    });
   }
 }
 

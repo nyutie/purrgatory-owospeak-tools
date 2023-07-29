@@ -16,7 +16,11 @@ class Main {
 
     this.finishedProcessing = { 'wordCount': null, 'cellProgress': null };
 
-    this.selectedSheetData = { type: null, content: null };
+    this.selectedSheetData = { type: null, content: null, title: null };
+  }
+  
+  clearFile() {
+    this.selectedSheetData = { type: null, content: null, title: null };
   }
 
   checkIfFinishedProcessing() {
@@ -60,10 +64,10 @@ class Main {
       document.getElementById('sheet-ready').innerHTML = 'downloading sheet...';
       const sheetsID = sheetInput.content.match(/[-\w]{25,}/);
       this.fetchSheetsData(sheetsID).then((data) => {
-        this.selectedSheetData = { type: 'googlesheets', content: data };
+        this.selectedSheetData = { type: 'googlesheets', content: data, title: sheetInput.title };
         this.ui.autoTranslator.fileReady(true);
-        this.wordCounter.countWords({ type: 'googlesheets', content: data });
-        this.cellTracker.getProgress({ type: 'googlesheets', content: data });
+        this.wordCounter.countWords(this.selectedSheetData);
+        this.cellTracker.getProgress(this.selectedSheetData);
       });
     } else if (sheetInput.type === 'file') {
       document.getElementById('sheet-ready').innerHTML = 'converting sheet...';
@@ -71,8 +75,10 @@ class Main {
       const reader = new FileReader();
       reader.onload = (event) => {
         const data = new Uint8Array(event.target.result);
-        this.wordCounter.countWords({ type: 'file', content: data });
-        this.cellTracker.getProgress({ type: 'file', content: data });
+        this.selectedSheetData = { type: 'file', content: data, title: sheetInput.title };
+        this.ui.autoTranslator.fileReady(true);
+        this.wordCounter.countWords(this.selectedSheetData);
+        this.cellTracker.getProgress(this.selectedSheetData);
       };
       reader.readAsArrayBuffer(file);
     } 
@@ -80,6 +86,7 @@ class Main {
 
   translateSheet(rules) {
     console.log(rules);
+    this.autoTranslator.applyRules(this.selectedSheetData, rules)
   }
 }
 

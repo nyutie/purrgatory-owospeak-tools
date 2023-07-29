@@ -49,7 +49,8 @@ class Ui {
               sheetReady.innerHTML = `selected google sheet: '${title}'`;
               this.selectedSheet = {
                 type: 'link',
-                content: sheetUrl
+                content: sheetUrl,
+                title: title
               };
               this.enableProcessSheetButton(true);
             })
@@ -112,6 +113,7 @@ class Ui {
         this.selectedSheet = {
           type: 'file',
           content: file,
+          title: title
         };
   
         this.enableProcessSheetButton(true);
@@ -126,6 +128,8 @@ class Ui {
       const linkInput = document.getElementById('link-input');
       linkInput.disabled = false;
       linkInput.value = '';
+
+      window.main.clearFile();
     }
   
     sendSheetToMain() {
@@ -140,7 +144,7 @@ class Ui {
 
     fileReady(isFileReady) {
       if (isFileReady) {
-        this.outputDiv.innerHTML = 'file ready.';
+        this.outputDiv.innerHTML = 'ready to use.';
         this.enableApplyRulesButton(true);
       } else {
         this.outputDiv.innerHTML = '';

@@ -170,8 +170,12 @@ a {
   padding-left: 4px;
 }
 
+.auto-translator-settings {
+  font-size: 14px;
+}
+
 .rules-title {
-  font-size: 18px;
+  font-size: 15px;
 }
 
 .invisible-divider-small {
@@ -204,3 +208,4 @@ fieldset legend {
   background-color: #d6f4f2;
   translate: 0 1px;
 }
+
