@@ -1,4 +1,4 @@
-importScripts("https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js");
+importScripts("https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js");
 
 class AutoTranslatorWorker {
   constructor() {
@@ -55,23 +55,30 @@ class AutoTranslatorWorker {
 
   // Function to check if the cell is to be translated
   isCellToBeCounted(cell) {
-    return cell.v !== undefined && cell.v !== '' && cell.v !== '_pass';
+    return cell && cell.value !== undefined && cell.value !== '' && cell.value !== '_pass';
   }
-
+  
   // Function to check if the cell is not approved
-  isCellNotApproved(cell) {
-    if (cell.v === undefined || cell.v === '') {
+  isCellOkayToOverwrite(cell) {
+    console.log(cell)
+    if (cell.value === null) {
       return true;
     }
-  
     return this.isMarkedWithBackgroundColor(cell);
   }
 
   // Function to check if the cell has the background color #d6f4f2
   isMarkedWithBackgroundColor(cell) {
-    const cellStyle = cell.s;
-    if (!cellStyle || !cellStyle.bgColor || !cellStyle.fgColor) return false;
-    if (cellStyle.bgColor.rgb === 'D6F4F2' && cellStyle.fgColor.rgb === 'D6F4F2') return true;
+    const cellFill = cell.style.fill;
+
+    console.log(cell)
+    
+    if (!cellFill || !cellFill.fgColor || !cellFill.bgColor) return false;
+  
+    const fgColor = cellFill.fgColor.argb;
+    const bgColor = cellFill.bgColor.argb;
+  
+    return fgColor === 'FFD6F4F2' && bgColor === 'FFD6F4F2';
   }
 
   // Function to determine the columns based on sheet name
@@ -86,55 +93,51 @@ class AutoTranslatorWorker {
   }
 
   // Function to track cells and calculate progress
-  createNewFile(sheetUint8Data) {
-    const workbook = XLSX.read(sheetUint8Data, { type: 'array', cellStyles: true });
+  async createNewFile(sheetUint8Data) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(sheetUint8Data);
   
     const unknownSheets = [];
   
-    workbook.SheetNames.forEach((sheetName) => {
+    workbook.eachSheet((worksheet) => {
+      const sheetName = worksheet.name;
       const columnsToCheck = this.getColumnsForSheet(sheetName);
   
       if (columnsToCheck) {
-        const sheetsData = workbook.Sheets[sheetName];
+        const [columnToBeTranslated, translatedColumn] = columnsToCheck[0];
   
-        // Loop through the cells in the specified columns and check if they are to be translated
-        for (const [columnToBeTranslated, translatedColumn] of columnsToCheck) {
-          let isFirstCell = true;
+        // Loop through the rows in the specified columns and check if they are to be translated
+        worksheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
+          if (rowIndex > 1) {
+            const cellToBeTranslated = row.getCell(columnToBeTranslated);
+            const cellToTheRight = row.getCell(translatedColumn);
   
-          for (const cellReference in sheetsData) {
-            if (cellReference.startsWith(columnToBeTranslated)) {
-              // ignore first cell in column:
-              if (isFirstCell) {
-                isFirstCell = false;
-                continue;
-              }
-  
-              const cellReferenceToTheRight = cellReference.replace(columnToBeTranslated, translatedColumn);
-  
-              if (this.isCellToBeCounted(sheetsData[cellReference]) && sheetName === 'numa') {
-                if (this.isCellNotApproved(sheetsData[cellReferenceToTheRight])) {
-                  // in the new file, set the cell to the right to 'hello world'
-                  sheetsData[cellReferenceToTheRight].v = 'hello world';
-                  sheetsData[cellReferenceToTheRight].t = 's';
-                  
-                  sheetsData[cellReferenceToTheRight].s.patternType = 'solid';
-                  sheetsData[cellReferenceToTheRight].s.bgColor = { rgb: 'D6F4F2' };
-                  sheetsData[cellReferenceToTheRight].s.fgColor = { rgb: 'D6F4F2' };
-                }
+            if (this.isCellToBeCounted(cellToBeTranslated) && sheetName === 'numa') {
+              // console.log("aaa");
+              if (this.isCellOkayToOverwrite(cellToTheRight)) {
+                // console.log("bbb");
+                // in the new file, set the cell to the right to 'hello world'
+                cellToTheRight.value = 'hello world';
+                cellToTheRight.style.fill = {
+                  type: 'pattern',
+                  pattern: 'solid',
+                  fgColor: { argb: 'FFD6F4F2' },
+                  bgColor: { argb: 'FFD6F4F2' }
+                };
               }
             }
           }
-        }
+        });
       } else {
         unknownSheets.push(sheetName);
       }
     });
   
-    // Add the new file data to the message
-    const newFileData = XLSX.write(workbook, { type: 'array', bookType: 'xlsx', cellStyles: true });
+    // Convert the workbook to binary data
+    const buffer = await workbook.xlsx.writeBuffer();
     self.postMessage({
       finished: true,
-      fileData: [new Uint8Array(newFileData)],
+      fileData: [buffer],
       unknownSheets: unknownSheets,
     });
   }
