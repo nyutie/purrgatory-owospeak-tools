@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>purrgatory translation helper</title>
+  <link rel="stylesheet" href="styles/styles.css">
+  <link rel="icon" type="image/png" href="images/pth.png">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="purrgatory translation helper">
+  <meta property="og:description" content="shows helpful info like translation progress and word count!">
+  <meta property="og:image" content="https://raw.githubusercontent.com/nyutie/purrgatory-translation-progress-tracker/main/images/pth.png">
+  <meta property="og:image:width" content="125">
+  <meta property="og:image:height" content="125">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3&display=swap" rel="stylesheet">
+
+  <meta http-equiv="Content-Security-Policy" content="worker-src 'self'">
+</head>
+<body>
+  <div class="web-content">
+    <div class="column-down">
+      <div class="container">
+        <label>input</label>
+        <div class="inputs">
+          <input id="link-input" type="text" placeholder="google sheets link" />
+          <div style="user-select: none;">or</div>
+          <div class="grow upload-button-group">
+            <input id="file-upload-input" type="file" accept=".xls,.xlsx" style="display: none" />
+            <button id="upload-button" class="upload-button" onclick="document.getElementById('file-upload-input').click()">file upload</button>
+            <button id="upload-clear-button" class="upload-clear-button" onclick="main.ui.inputs.clearFile()">×</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="process-sheets">
+          <div id="sheet-ready" class="smaller-text hidden">test</div>
+          <button id="process-sheet-button" onclick="main.ui.inputs.sendSheetToMain()" disabled>process sheet</button>
+        </div>
+      </div>
+  
+      <div class="tools">
+        <div class="container">
+          <label for="cellsOutput">cells translated:</label>
+          <div class="divider"></div>
+          <div id="outputCell" class="output"></div>
+        </div>
+  
+        <div class="container">
+          <label for="wordsOutput">word count:</label>
+          <div class="divider"></div>
+          <div id="outputWords" class="output"></div>
+        </div>
+
+        <div class="container">
+          <label for="autoTranslator:">auto translator:</label>
+          <div class="divider"></div>
+          <fieldset id="auto-translator-settings" class="smaller-text">
+            <legend>settings</legend>
+            <div class="rules-title">letter rules:</div>
+            <div class="left-line">
+              <input type="checkbox" id="rule1" name="letterRule" value="r ➝ w" checked>
+              <label for="rule1">r ➝ w</label><br>
+              <input type="checkbox" id="rule2" name="letterRule" value="l ➝ w" checked>
+              <label for="rule2">l ➝ w</label><br>
+            </div>
+            <div class="invisible-divider-small"></div>
+            <div class="rules-title">word rules:</div>
+            <div class="left-line">
+              <input type="checkbox" id="rule3" name="wordRule" value="purrgatory ➝ purrgatowy" checked>
+              <label for="rule3">purrgatory ➝ purrgatowy</label><br>
+              <input type="checkbox" id="rule4" name="wordRule" value="numa ➝ nyuma" checked>
+              <label for="rule4">numa ➝ nyuma</label><br>
+              <input type="checkbox" id="rule5" name="wordRule" value="oliver ➝ owiver" checked>
+              <label for="rule5">oliver ➝ owiver</label><br>
+              <input type="checkbox" id="rule6" name="wordRule" value="tori ➝ towi" checked>
+              <label for="rule6">tori ➝ towi</label><br>
+              <input type="checkbox" id="rule7" name="wordRule" value="fuck ➝ fwick" checked>
+              <label for="rule7">fuck ➝ fwick</label><br>
+              <input type="checkbox" id="rule8" name="wordRule" value="fucking ➝ fwicking" checked>
+              <label for="rule8">fucking ➝ fwicking</label><br>
+              <input type="checkbox" id="rule9" name="wordRule" value="sure ➝ shyure" checked>
+              <label for="rule9">sure ➝ shyure</label><br>
+              <input type="checkbox" id="rule10" name="wordRule" value="alright ➝ alwight" checked>
+              <label for="rule10">alright ➝ alwight</label><br>
+              <input type="checkbox" id="rule11" name="wordRule" value="i'll ➝ i'w" checked>
+              <label for="rule11">i'll ➝ i'w</label><br>
+              <input type="checkbox" id="rule12" name="wordRule" value="spelled ➝ spewt" checked>
+              <label for="rule12">spelled ➝ spewt</label><br>
+            </div>
+          </fieldset>
+          <div class="invisible-divider-small"></div>
+          <div class="center-horizontal">
+            <button id="auto-translator-apply-rules-button" onclick="main.ui.autoTranslator.applyRules()" disabled>apply rules</button>
+          </div>
+          <div class="divider"></div>
+          <div id="outputAutoTranslator" class="output"></div>
+          <div class="invisible-divider-small"></div>
+          <div class="center-horizontal">
+            <button id="auto-translator-download-button" onclick="main.ui.autoTranslator.download()" disabled>download sheet</button>
+          </div>
+        </div>
+      </div>
+      
+  
+      <div class="container notes">
+        <label for="notes">notes:</label>
+        <div class="smaller-text" style="user-select: none;">
+          --nonfunctional still!--
+          if you use a google sheets link it has to be set to public! top right, click share and set general access to anyone with the link as a viewer.
+          <br>
+          <br>
+          the script uses a specific cell color,
+          <div class="color-square" style="background-color: #d6f4f2;"></div>
+          #d6f4f2, for cells that have been translated with by script.
+          <br>
+          any rules can be changed for these cells later, same with empty cells with no background color (white).
+          <br>
+          to tell the script to treat the cell as approved, change the background color to anything other than
+          <div class="color-square" style="background-color: #d6f4f2;"></div>
+          #d6f4f2. white (no color) will work fine.
+
+          <div class="divider"></div>
+          made by nyutie - on
+          <a href="https://github.com/nyutie/purrgatory-owospeak-tools" target="_blank" rel="noopener">github</a>
+          - meow meow :3
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <script type="module" src="scripts/script-main.js"></script>
+  <script type="module" src="scripts/script-countWords.js" ></script>
+  <script type="module" src="scripts/script-cellTracker.js" ></script>
+</body>
+</html>
