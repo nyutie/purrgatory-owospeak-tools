@@ -5,7 +5,7 @@ class AutoTranslateRules {
     this.ruleIds = {
       'r': 'rule1',
       'l': 'rule2',
-      'purrogatory': 'rule3',
+      'purrgatory': 'rule3',
       'numa': 'rule4',
       'oliver': 'rule5',
       'tori': 'rule6',
@@ -16,8 +16,11 @@ class AutoTranslateRules {
       'spelled': 'rule11',
       'your': 'rule12',
       'you\'re': 'rule13',
-      'flowers': 'rule14',
-      'll': 'rule15',
+      'their': 'rule14',
+      'they\'re': 'rule15',
+      'her': 'rule16',
+      'flowers': 'rule17',
+      'll': 'rule18',
     }
   }
 
@@ -82,17 +85,40 @@ class AutoTranslateRules {
       'r': 'w',
       'l': 'w',
     };
-
-    for (const [letter, replacement] of Object.entries(letterRules)) {
-      const ruleId = this.ruleIds[letter];
-
-      if (ruleId && rules[ruleId]) {
-        if (!word.includes(this.marker)) {
-          word = word.replace(new RegExp(letter, 'g'), this.marker + replacement + this.marker);
+  
+    // Check if the word contains the markers
+    if (word.includes(this.marker)) {
+      // Split the word into segments based on the markers
+      const segments = word.split(this.marker);
+  
+      // Apply the replacement rules only outside the markers
+      const modifiedSegments = segments.map((segment, index) => {
+        if (index % 2 === 0) {
+          // Outside the markers, apply the letter replacement rules
+          for (const [letter, replacement] of Object.entries(letterRules)) {
+            const ruleId = this.ruleIds[letter];
+  
+            if (ruleId && rules[ruleId]) {
+              segment = segment.replace(new RegExp(letter, 'g'), replacement);
+            }
+          }
+        }
+        return segment;
+      });
+  
+      // Reassemble the word with the modified segments
+      word = modifiedSegments.join(this.marker);
+    } else {
+      // If the markers are not present, apply the letter replacement rules to the entire word
+      for (const [letter, replacement] of Object.entries(letterRules)) {
+        const ruleId = this.ruleIds[letter];
+  
+        if (ruleId && rules[ruleId]) {
+          word = word.replace(new RegExp(letter, 'g'), replacement);
         }
       }
     }
-
+  
     return word;
   }
 
@@ -122,26 +148,29 @@ class AutoTranslateRules {
   }
 }
 
-// rules ={
-//   "rule1": true,
-//   "rule2": true,
-//   "rule3": true,
-//   "rule4": true,
-//   "rule5": true,
-//   "rule6": true,
-//   "rule7": true,
-//   "rule8": true,
-//   "rule9": true,
-//   "rule10": true,
-//   "rule11": true,
-//   "rule12": true,
-//   "rule13": true,
-//   "rule14": true,
-//   "rule15": true
-// }
+rules ={
+  "rule1": true, // r -> w
+  "rule2": true, // l -> w
+  "rule3": true, // purrgatory -> purrgatowy
+  "rule4": true, // numa -> nyuma
+  "rule5": true, // oliver -> owiver
+  "rule6": true, // tori -> towi
+  "rule7": true, // fuck -> fwick
+  "rule8": true, // fucking -> fwicking
+  "rule9": true, // sure -> shyure
+  "rule10": true, // alright -> alwight
+  "rule11": true, // spelled -> spewt
+  "rule12": true, // your -> your
+  "rule13": true, // you're -> you're
+  "rule14": true, // their -> their
+  "rule15": true, // they're -> they're
+  "rule16": true, // her -> her
+  "rule17": true, // flowers -> flowehs
+  "rule18": true  // ll -> ll
+}
 
   
-// const translator = new AutoTranslateRules();
-// const inputString = 'I love purrgatory and numa flowers.';
-// const translatedString = translator.applyRules(inputString, rules);
-// console.log(translatedString);
+const translator = new AutoTranslateRules();
+const inputString = 'r l purrgatory ';
+const translatedString = translator.applyRules(inputString, rules);
+console.log(translatedString);
