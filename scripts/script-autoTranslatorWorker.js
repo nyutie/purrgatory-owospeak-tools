@@ -1,16 +1,19 @@
 importScripts("https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js");
+importScripts("/scripts/autoTranslatorRules.js");
 
 class AutoTranslatorWorker {
   constructor() {
+    this.autoTranslateRules = new AutoTranslateRules();
+
     // Listen for messages from the main thread
     self.onmessage = (event) => {
       const sheetInput = event.data;
       if (sheetInput.type === 'googlesheets') {
         // console.log(sheetInput);
-        this.createNewFile(sheetInput.content);
+        this.createNewFile(sheetInput.content, sheetInput.rules);
       } else if (sheetInput.type === 'file') {
         // console.log(sheetInput);
-        this.createNewFile(sheetInput.content);
+        this.createNewFile(sheetInput.content, sheetInput.rules);
       } else {
         // console.log(sheetInput);
         self.postMessage({ error: 'invalid sheetInput type?? something went very wrong...' });
@@ -53,9 +56,6 @@ class AutoTranslatorWorker {
       .then((data) => new Uint8Array(data));
   }
 
-  // Function to check if the cell has the background color #d6f4f2
-
-
   // Function to determine the columns based on sheet name
   getColumnsForSheet(sheetName) {
     if (this.columnsDEandJK.includes(sheetName)) {
@@ -68,15 +68,15 @@ class AutoTranslatorWorker {
   }
 
   // Function to track cells and calculate progress
-  createNewFile(sheetUint8Data) {
+  createNewFile(sheetUint8Data, rules) {
     const workbook = new ExcelJS.Workbook();
 
-      // Function to check if the cell is to be translated
+    // Function to check if the cell is to be translated
     function isCellToBeCounted(cell) {
       return cell && cell.value !== null && cell.value !== '' && cell.value !== '_pass';
     }
 
-    // Function to check if the cell is not approved
+    // Function to check if the cell is not approved by a human
     function isCellOkayToOverwrite(cell) {
       function isMarkedWithBackgroundColor(cell) {
         
@@ -96,33 +96,34 @@ class AutoTranslatorWorker {
 
     workbook.xlsx.load(sheetUint8Data).then(() => {
       const unknownSheets = [];
-  
+
       workbook.eachSheet((worksheet) => {
         const sheetName = worksheet.name;
         const columnsToCheck = this.getColumnsForSheet(sheetName);
-  
+
         if (columnsToCheck) {
           const [originalText, translatedColumn] = columnsToCheck[0];
-  
+
           // Loop through the rows in the specified columns and check if they are to be translated
           worksheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
             if (rowIndex > 1) {
               const cellWithOriginalText = row.getCell(originalText);
               const cellToTheRight = row.getCell(translatedColumn);
-  
+
               if (isCellToBeCounted(cellWithOriginalText) && sheetName === 'numa') {
                 if (isCellOkayToOverwrite(cellToTheRight)) {
-                  console.log(cellToTheRight)
+                  const originalString = cellWithOriginalText.value;
+                  const modifiedString = this.autoTranslateRules.applyRules(originalString, rules);
 
-                  cellToTheRight.value = 'hello world';
+                  cellToTheRight.value = modifiedString;
                   cellToTheRight.style = {
                     ...cellToTheRight.style,
                     fill: {
                       ...cellToTheRight.fill,
                       type: 'pattern',
                       pattern: 'solid',
-                      fgColor: { argb: 'FFD6F4F2' }
-                    }
+                      fgColor: { argb: 'FFD6F4F2' },
+                    },
                   };
                 }
               }
@@ -132,7 +133,7 @@ class AutoTranslatorWorker {
           unknownSheets.push(sheetName);
         }
       });
-  
+
       // Convert the workbook to binary data
       workbook.xlsx.writeBuffer().then((buffer) => {
         self.postMessage({

@@ -56,6 +56,7 @@ class AutoTranslator {
     };
 
     // Send message to the worker to start processing
+    sheetInput.rules = rules;
     this.cellCounterWorker.postMessage(sheetInput);
   }
 }

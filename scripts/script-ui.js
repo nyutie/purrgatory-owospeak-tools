@@ -182,11 +182,13 @@ class Ui {
 
       const letterRules = document.querySelectorAll('input[name="letterRule"]');
       const wordRules = document.querySelectorAll('input[name="wordRule"]');
+      const otherRules = document.querySelectorAll('input[name="otherRule"]');
     
       const letterRulesObj = objectFromElements(letterRules);
       const wordRulesObj = objectFromElements(wordRules);
+      const otherRulesObj = objectFromElements(otherRules);
     
-      return { ...letterRulesObj, ...wordRulesObj };
+      return { ...letterRulesObj, ...wordRulesObj, ...otherRulesObj };
     }
 
     applyRules() {
