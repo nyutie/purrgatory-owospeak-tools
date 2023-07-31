@@ -87,7 +87,7 @@ class AutoTranslatorWorker {
         return fgColor === 'FFD6F4F2';
       }
 
-      if (cell.model.type === 0) { // if a cell does not contain a value
+      if (cell.model.type === 0 || cell.value === '') { // if a cell does not contain a value or is an empty string
         return true;
       }
 
@@ -101,6 +101,8 @@ class AutoTranslatorWorker {
         const sheetName = worksheet.name;
         const columnsToCheck = this.getColumnsForSheet(sheetName);
 
+        // console.log(sheetName, worksheet);
+
         if (columnsToCheck) {
           const [originalText, translatedColumn] = columnsToCheck[0];
 
@@ -110,7 +112,7 @@ class AutoTranslatorWorker {
               const cellWithOriginalText = row.getCell(originalText);
               const cellToTheRight = row.getCell(translatedColumn);
 
-              if (isCellToBeCounted(cellWithOriginalText) && sheetName === 'numa') {
+              if (isCellToBeCounted(cellWithOriginalText)) {
                 if (isCellOkayToOverwrite(cellToTheRight)) {
                   const originalString = cellWithOriginalText.value;
                   const modifiedString = this.autoTranslateRules.applyRules(originalString, rules);
