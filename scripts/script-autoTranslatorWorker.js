@@ -1,5 +1,5 @@
 importScripts("https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js");
-importScripts("/scripts/autoTranslatorRules.js");
+importScripts("./autoTranslatorRules.js");
 
 class AutoTranslatorWorker {
   constructor() {
