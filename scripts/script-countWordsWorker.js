@@ -28,12 +28,20 @@ class WordCounterWorker {
   countWordsInSheets(sheetsData) {
     const wordCounts = {};
 
+    function isMarkedWithBackgroundColor(cell) {
+      const cellStyle = cell.s;
+      if (!cellStyle || !cellStyle.fgColor) return false;
+      if (cellStyle.fgColor.rgb === 'D6F4F2') return true;
+    }
+
     Object.keys(sheetsData).forEach((cellReference) => {
       const sheetName = cellReference.replace(/[^A-Za-z]/g, ''); // Extract sheet name from cell reference
       const cellValue = sheetsData[cellReference].v;
 
       if (cellValue) {
-        wordCounts[sheetName] = (wordCounts[sheetName] || 0) + this.countWordsInString(cellValue);
+        if (!isMarkedWithBackgroundColor(sheetsData[cellReference])) {
+          wordCounts[sheetName] = (wordCounts[sheetName] || 0) + this.countWordsInString(cellValue);
+        }
       }
     });
 
@@ -42,7 +50,7 @@ class WordCounterWorker {
 
   // Function to count words and send the result back to the main thread
   countWordsInSheetsAndSendResult(sheetUint8Data) {
-    const workbook = XLSX.read(sheetUint8Data, { type: 'array' });
+    const workbook = XLSX.read(sheetUint8Data, { type: 'array', cellStyles: true });
 
     const wordCounts = {};
 

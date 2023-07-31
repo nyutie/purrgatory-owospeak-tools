@@ -75,9 +75,15 @@ class CellTrackerWorker {
     }
   }
 
+  isMarkedWithBackgroundColor(cell) {
+    const cellStyle = cell.s;
+    if (!cellStyle || !cellStyle.fgColor) return false;
+    if (cellStyle.fgColor.rgb === 'D6F4F2') return true;
+  }
+
   // Function to track cells and calculate progress
   trackCellsAndSendProgress(sheetUint8Data) {
-    const workbook = XLSX.read(sheetUint8Data, { type: 'array' });
+    const workbook = XLSX.read(sheetUint8Data, { type: 'array', cellStyles: true });
 
     let totalOriginalCount = 0;
     let totalTranslatedCount = 0;
@@ -98,29 +104,26 @@ class CellTrackerWorker {
           let isFirstCell = true;
 
           for (const cellReference in sheetsData) {
-            if (cellReference[0] === columnToBeTranslated) {
+            if (cellReference.startsWith(columnToBeTranslated)) {
               // ignore first cell in column:
               if (isFirstCell) {
                 isFirstCell = false;
                 continue;
               }
 
-              const cellValue = sheetsData[cellReference].v;
+              const cellValue = sheetsData[cellReference].v ?? '';
+
+              const cellReferenceToTheRight = cellReference.replace(columnToBeTranslated, translatedColumn);
 
               if (this.isCellToBeCounted(cellValue)) {
                 originalCells++;
                 totalOriginalCount++;
 
-                // Check the corresponding cell in the next column and count it as translated if it has some text
-                if (cellReference[0] === columnToBeTranslated) {
-                  const cellReferenceNext = `${String.fromCharCode(cellReference[0].charCodeAt(0) + 1)}${cellReference.substring(1)}`;
-                  let cellValueNext;
-                  try {
-                    cellValueNext = sheetsData[cellReferenceNext].v;
-                  } catch (TypeError) {
-                    cellValueNext = '';
-                  }
-                  if (this.isCellTranslated(cellValueNext)) {
+                if (sheetsData[cellReferenceToTheRight] && this.isCellTranslated(sheetsData[cellReferenceToTheRight].v || '')) {
+                  if (!this.isMarkedWithBackgroundColor(sheetsData[cellReferenceToTheRight])) {
+                    if (sheetName === 'numa') {
+                      console.log(sheetsData[cellReferenceToTheRight])
+                    }
                     translatedCells++;
                     totalTranslatedCount++;
                   }
