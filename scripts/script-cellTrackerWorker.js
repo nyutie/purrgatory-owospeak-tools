@@ -121,9 +121,6 @@ class CellTrackerWorker {
 
                 if (sheetsData[cellReferenceToTheRight] && this.isCellTranslated(sheetsData[cellReferenceToTheRight].v || '')) {
                   if (!this.isMarkedWithBackgroundColor(sheetsData[cellReferenceToTheRight])) {
-                    if (sheetName === 'numa') {
-                      console.log(sheetsData[cellReferenceToTheRight])
-                    }
                     translatedCells++;
                     totalTranslatedCount++;
                   }
