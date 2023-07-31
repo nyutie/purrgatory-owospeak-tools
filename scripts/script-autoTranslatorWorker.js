@@ -53,33 +53,8 @@ class AutoTranslatorWorker {
       .then((data) => new Uint8Array(data));
   }
 
-  // Function to check if the cell is to be translated
-  isCellToBeCounted(cell) {
-    return cell && cell.value !== undefined && cell.value !== '' && cell.value !== '_pass';
-  }
-  
-  // Function to check if the cell is not approved
-  isCellOkayToOverwrite(cell) {
-    console.log(cell)
-    if (cell.value === null) {
-      return true;
-    }
-    return this.isMarkedWithBackgroundColor(cell);
-  }
-
   // Function to check if the cell has the background color #d6f4f2
-  isMarkedWithBackgroundColor(cell) {
-    const cellFill = cell.style.fill;
 
-    console.log(cell)
-    
-    if (!cellFill || !cellFill.fgColor || !cellFill.bgColor) return false;
-  
-    const fgColor = cellFill.fgColor.argb;
-    const bgColor = cellFill.bgColor.argb;
-  
-    return fgColor === 'FFD6F4F2' && bgColor === 'FFD6F4F2';
-  }
 
   // Function to determine the columns based on sheet name
   getColumnsForSheet(sheetName) {
@@ -95,7 +70,30 @@ class AutoTranslatorWorker {
   // Function to track cells and calculate progress
   createNewFile(sheetUint8Data) {
     const workbook = new ExcelJS.Workbook();
-    
+
+      // Function to check if the cell is to be translated
+    function isCellToBeCounted(cell) {
+      return cell && cell.value !== null && cell.value !== '' && cell.value !== '_pass';
+    }
+
+    // Function to check if the cell is not approved
+    function isCellOkayToOverwrite(cell) {
+      function isMarkedWithBackgroundColor(cell) {
+        
+        if (!cell.fill || !cell.fill.fgColor) return false;
+      
+        const fgColor = cell.fill.fgColor.argb;
+      
+        return fgColor === 'FFD6F4F2';
+      }
+
+      if (cell.model.type === 0) { // if a cell does not contain a value
+        return true;
+      }
+
+      return isMarkedWithBackgroundColor(cell);
+    }
+
     workbook.xlsx.load(sheetUint8Data).then(() => {
       const unknownSheets = [];
   
@@ -104,25 +102,27 @@ class AutoTranslatorWorker {
         const columnsToCheck = this.getColumnsForSheet(sheetName);
   
         if (columnsToCheck) {
-          const [columnToBeTranslated, translatedColumn] = columnsToCheck[0];
+          const [originalText, translatedColumn] = columnsToCheck[0];
   
           // Loop through the rows in the specified columns and check if they are to be translated
           worksheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
             if (rowIndex > 1) {
-              const cellToBeTranslated = row.getCell(columnToBeTranslated);
+              const cellWithOriginalText = row.getCell(originalText);
               const cellToTheRight = row.getCell(translatedColumn);
   
-              if (this.isCellToBeCounted(cellToBeTranslated) && sheetName === 'numa') {
-                // console.log("aaa");
-                if (this.isCellOkayToOverwrite(cellToTheRight)) {
-                  // console.log("bbb");
-                  // in the new file, set the cell to the right to 'hello world'
+              if (isCellToBeCounted(cellWithOriginalText) && sheetName === 'numa') {
+                if (isCellOkayToOverwrite(cellToTheRight)) {
+                  console.log(cellToTheRight)
+
                   cellToTheRight.value = 'hello world';
-                  cellToTheRight.style.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FFD6F4F2' },
-                    bgColor: { argb: 'FFD6F4F2' }
+                  cellToTheRight.style = {
+                    ...cellToTheRight.style,
+                    fill: {
+                      ...cellToTheRight.fill,
+                      type: 'pattern',
+                      pattern: 'solid',
+                      fgColor: { argb: 'FFD6F4F2' }
+                    }
                   };
                 }
               }
