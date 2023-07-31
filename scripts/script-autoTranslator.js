@@ -3,6 +3,12 @@ class AutoTranslator {
     this.fileData = null;
   }
 
+  clearFile() {
+    this.fileData = null;
+    const outputDiv = document.getElementById('outputAutoTranslator');
+    outputDiv.innerHTML = '';
+  }
+
   download() {
     console.log(this.fileData)
     const blob = new Blob(this.fileData, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -50,11 +56,12 @@ class AutoTranslator {
 
       this.fileData = event.data.fileData;
       window.main.ui.autoTranslator.enableDownloadButton(true);
-
-      // tell main we're done
-      // window.main.finishedProcessingCellProgress();
+      
+      window.main.finishedProcessingTranslator();
     };
 
+
+    window.main.processingTranslator();
     // Send message to the worker to start processing
     sheetInput.rules = rules;
     this.cellCounterWorker.postMessage(sheetInput);

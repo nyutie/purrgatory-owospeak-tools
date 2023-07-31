@@ -21,6 +21,8 @@ class Main {
   
   clearFile() {
     this.selectedSheetData = { type: null, content: null, title: null };
+    this.autoTranslator.clearFile()
+    window.main.ui.autoTranslator.enableDownloadButton(false);
   }
 
   checkIfFinishedProcessing() {
@@ -40,6 +42,14 @@ class Main {
   finishedProcessingCellProgress() {
     this.finishedProcessing.cellProgress = true;
     this.checkIfFinishedProcessing();
+  }
+
+  finishedProcessingTranslator() {
+    this.ui.inputs.enableAllInputs(true);
+  }
+
+  processingTranslator() {
+    this.ui.inputs.enableAllInputs(false);
   }
 
   resetSheetReadyText() {
