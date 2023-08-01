@@ -151,29 +151,29 @@ class AutoTranslateRules {
   }
 }
 
-rules = {
-  "rule1": true, // r -> w
-  "rule2": true, // l -> w
-  "rule3": true, // purrgatory -> purrgatowy
-  "rule4": true, // numa -> nyuma
-  "rule5": true, // oliver -> owiver
-  "rule6": true, // tori -> towi
-  "rule7": true, // fuck -> fwick
-  "rule8": true, // fucking -> fwicking
-  "rule9": true, // sure -> shyure
-  "rule10": true, // alright -> alwight
-  "rule11": true, // spelled -> spewt
-  "rule12": true, // your -> your
-  "rule13": true, // you're -> you're
-  "rule14": true, // their -> their
-  "rule15": true, // they're -> they're
-  "rule16": true, // her -> her
-  "rule17": true, // flowers -> flowehs
-  "rule18": true  // ll -> ll
-}
+// rules = {
+//   "rule1": true, // r -> w
+//   "rule2": true, // l -> w
+//   "rule3": true, // purrgatory -> purrgatowy
+//   "rule4": true, // numa -> nyuma
+//   "rule5": true, // oliver -> owiver
+//   "rule6": true, // tori -> towi
+//   "rule7": true, // fuck -> fwick
+//   "rule8": true, // fucking -> fwicking
+//   "rule9": true, // sure -> shyure
+//   "rule10": true, // alright -> alwight
+//   "rule11": true, // spelled -> spewt
+//   "rule12": true, // your -> your
+//   "rule13": true, // you're -> you're
+//   "rule14": true, // their -> their
+//   "rule15": true, // they're -> they're
+//   "rule16": true, // her -> her
+//   "rule17": true, // flowers -> flowehs
+//   "rule18": true  // ll -> ll
+// }
 
   
-const translator = new AutoTranslateRules();
-const inputString = 'r l purrgatory numa oliver tori fuck fucking sure alright spelled your you\\\'re their they\\\'re her flowers ll';
-const translatedString = translator.applyRules(inputString, rules);
-console.log(translatedString);
+// const translator = new AutoTranslateRules();
+// const inputString = 'r l purrgatory numa oliver tori fuck fucking sure alright spelled your you\\\'re their they\\\'re her flowers ll';
+// const translatedString = translator.applyRules(inputString, rules);
+// console.log(translatedString);
