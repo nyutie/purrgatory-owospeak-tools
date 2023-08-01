@@ -101,39 +101,36 @@ class AutoTranslatorWorker {
         const sheetName = worksheet.name;
         const columnsToCheck = this.getColumnsForSheet(sheetName);
 
-        // console.log(sheetName, worksheet);
-
-        if (columnsToCheck) {
-          const [originalText, translatedColumn] = columnsToCheck[0];
-
-          // Loop through the rows in the specified columns and check if they are to be translated
-          worksheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
-            if (rowIndex > 1) {
-              const cellWithOriginalText = row.getCell(originalText);
-              const cellToTheRight = row.getCell(translatedColumn);
-
-              if (isCellToBeCounted(cellWithOriginalText)) {
-                if (isCellOkayToOverwrite(cellToTheRight)) {
-                  const originalString = cellWithOriginalText.value;
-                  const modifiedString = this.autoTranslateRules.applyRules(originalString, rules);
-
-                  cellToTheRight.value = modifiedString;
-                  cellToTheRight.style = {
-                    ...cellToTheRight.style,
-                    fill: {
-                      ...cellToTheRight.fill,
-                      type: 'pattern',
-                      pattern: 'solid',
-                      fgColor: { argb: 'FFD6F4F2' },
-                    },
-                  };
+        if (columnsToCheck && Array.isArray(columnsToCheck)) {
+          columnsToCheck.forEach(([originalText, translatedColumn]) => {
+            worksheet.eachRow({ includeEmpty: false }, (row, rowIndex) => {
+              if (rowIndex > 1) {
+                const cellWithOriginalText = row.getCell(originalText);
+                const cellToTheRight = row.getCell(translatedColumn);
+        
+                if (isCellToBeCounted(cellWithOriginalText)) {
+                  if (isCellOkayToOverwrite(cellToTheRight)) {
+                    const originalString = cellWithOriginalText.value;
+                    const modifiedString = this.autoTranslateRules.applyRules(originalString, rules);
+        
+                    cellToTheRight.value = modifiedString;
+                    cellToTheRight.style = {
+                      ...cellToTheRight.style,
+                      fill: {
+                        ...cellToTheRight.fill,
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFD6F4F2' },
+                      },
+                    };
+                  }
                 }
               }
-            }
+            });
           });
         } else {
           unknownSheets.push(sheetName);
-        }
+        }        
       });
 
       // Convert the workbook to binary data
