@@ -174,6 +174,7 @@ class AutoTranslateRules {
 
   
 // const translator = new AutoTranslateRules();
-// const inputString = 'r l purrgatory numa oliver tori fuck fucking sure alright spelled your you\\\'re their they\\\'re her flowers ll';
+// const inputString = 'r l purrgatory numa oliver tori fuck fucking sure alright spelled your you\\\'re their they\\\'re her flowers ll he\'ll';
 // const translatedString = translator.applyRules(inputString, rules);
+// console.log(inputString);     
 // console.log(translatedString);
