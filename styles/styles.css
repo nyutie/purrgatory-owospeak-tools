@@ -10,9 +10,10 @@
 body {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 20px;
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: none;
-  text-rendering: optimizeSpeed;
+  font-smooth: never !important;
+  -webkit-font-smoothing: none !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeSpeed !important;
   /* image-rendering: pixelated; */
 }
 
