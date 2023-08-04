@@ -142,6 +142,8 @@ class CellTrackerWorker {
       // Post the progress data back to the main thread
       self.postMessage({
         totalProgress: totalProgress,
+        totalTranslatedCount: totalTranslatedCount,
+        totalOriginalCount: totalOriginalCount,
         sheetsProgress: sheetsProgress,
         unknownSheets: unknownSheets,
       });
