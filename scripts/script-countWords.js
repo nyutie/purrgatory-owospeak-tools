@@ -61,7 +61,7 @@ class WordCounter {
 
       // Calculate the total word count
       const totalWordCount = Object.values(wordCounts).reduce((acc, count) => acc + count, 0);
-      outputDiv.innerHTML += `<br>Total word count: ${totalWordCount - this.originalWordCounts.total}`;
+      outputDiv.innerHTML += `<br>total word count: ${totalWordCount - this.originalWordCounts.total}`;
 
       // Display unknown sheets separately
       if (Object.keys(unknownWordCounts).length > 0) {
