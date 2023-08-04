@@ -59,12 +59,12 @@ class WordCounterWorker {
     }
 
     Object.keys(sheetsData).forEach((cellReference) => {
-      const sheetName = cellReference.replace(/[^A-Za-z]/g, ''); // Extract sheet name from cell reference
+      const column = cellReference.replace(/[^A-Za-z]/g, '');
       const cellValue = sheetsData[cellReference].v;
 
-      if (cellValue && this.knownSheets.includes(sheetName)) {
+      if (cellValue) {
         if (!isMarkedWithBackgroundColor(sheetsData[cellReference])) {
-          wordCounts[sheetName] = (wordCounts[sheetName] || 0) + this.countWordsInString(cellValue);
+          wordCounts[column] = (wordCounts[column] || 0) + this.countWordsInString(cellValue);
         }
       }
     });
@@ -79,11 +79,16 @@ class WordCounterWorker {
     const wordCounts = {};
 
     workbook.SheetNames.forEach((sheetName) => {
-      const sheetsData = workbook.Sheets[sheetName];
-      const sheetWordCounts = this.countWordsInSheets(sheetsData);
-
-      // Sum up word counts for each sheet
-      wordCounts[sheetName] = Object.values(sheetWordCounts).reduce((acc, count) => acc + count, 0);
+      if (!this.knownSheets.includes(sheetName)) {
+        wordCounts[sheetName] = 0;
+      }
+      else {
+        const sheetsData = workbook.Sheets[sheetName];
+        const sheetWordCounts = this.countWordsInSheets(sheetsData);
+  
+        // Sum up word counts for each sheet
+        wordCounts[sheetName] = Object.values(sheetWordCounts).reduce((acc, count) => acc + count, 0);
+      }
     });
 
     // Post the word counts back to the main thread
