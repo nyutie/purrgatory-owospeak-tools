@@ -73,6 +73,17 @@ a {
   border: 1px solid #ccc;
 }
 
+.banner-wrapper {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.purrgatory-image {
+  max-width: 100%;
+}
+
 .contianer > label {
   user-select: none;
   display: block;
