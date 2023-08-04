@@ -30,17 +30,17 @@ class CellTracker {
         outputDiv.innerHTML += `cells translated in '${sheetName}': ${sheetProgress}<br>`;
       }
 
+      // Display the total progress
+      outputDiv.innerHTML += `<br>total progress: ${progressData.totalProgress.toFixed(2)}%`;
+
+      // Display unknown sheets
       if (progressData.unknownSheets.length > 0) {
-        outputDiv.innerHTML += `<br><br>unknown sheets: `;
+        outputDiv.innerHTML += `<br><br><br>unknown sheets: `;
         progressData.unknownSheets.forEach((sheetName) => {
           outputDiv.innerHTML += `'${sheetName}', `;
         })
         outputDiv.innerHTML = outputDiv.innerHTML.slice(0, -2); // Remove the trailing comma and space
-        outputDiv.innerHTML += `<br><br>`;
       }
-
-      // Display the total progress
-      outputDiv.innerHTML += `<br>total progress: ${progressData.totalProgress.toFixed(2)}%`;
 
       // tell main we're done
       window.main.finishedProcessingCellProgress();

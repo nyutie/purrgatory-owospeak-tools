@@ -59,19 +59,18 @@ class WordCounter {
         }
       }
 
+      // Calculate the total word count
+      const totalWordCount = Object.values(wordCounts).reduce((acc, count) => acc + count, 0);
+      outputDiv.innerHTML += `<br>Total word count: ${totalWordCount - this.originalWordCounts.total}`;
+
       // Display unknown sheets separately
       if (Object.keys(unknownWordCounts).length > 0) {
-        outputDiv.innerHTML += `<br><br>unknown sheets: `;
+        outputDiv.innerHTML += `<br><br><br>unknown sheets: `;
         Object.keys(unknownWordCounts).forEach((sheetName) => {
           outputDiv.innerHTML += `'${sheetName}', `;
         });
         outputDiv.innerHTML = outputDiv.innerHTML.slice(0, -2); // Remove the trailing comma and space
-        outputDiv.innerHTML += `<br><br>`;
       }
-
-      // Calculate the total word count
-      const totalWordCount = Object.values(wordCounts).reduce((acc, count) => acc + count, 0);
-      outputDiv.innerHTML += `<br>Total word count: ${totalWordCount - this.originalWordCounts.total}`;
 
       // tell main we're done
       window.main.finishedProcessingWordCount();

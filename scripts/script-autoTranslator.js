@@ -43,16 +43,17 @@ class AutoTranslator {
       // Clear the output div
       outputDiv.innerHTML = '';
 
+      // Tell user that the file is ready
+      outputDiv.innerHTML += 'file ready for download.'
+
+      // Display unknown sheets
       if (event.data.unknownSheets.length > 0) {
-        outputDiv.innerHTML += `<br><br>unknown sheets: `;
+        outputDiv.innerHTML += `<br><br><br>unknown sheets: `;
         event.data.unknownSheets.forEach((sheetName) => {
           outputDiv.innerHTML += `'${sheetName}', `;
         });
         outputDiv.innerHTML = outputDiv.innerHTML.slice(0, -2); // Remove the trailing comma and space
-        outputDiv.innerHTML += `<br><br>`;
       }
-
-      outputDiv.innerHTML += 'file ready for download.'
 
       this.fileData = event.data.fileData;
       window.main.ui.autoTranslator.enableDownloadButton(true);
