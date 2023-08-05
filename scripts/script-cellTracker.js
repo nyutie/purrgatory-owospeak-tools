@@ -31,7 +31,7 @@ class CellTracker {
       }
 
       // Display the total progress
-      outputDiv.innerHTML += `<br>total progress: ${progressData.totalProgress.toFixed(2)}% or ${progressData.totalTranslatedCount}/${progressData.totalOriginalCount} cells`;
+      outputDiv.innerHTML += `<br>total progress: ${progressData.totalTranslatedCount}/${progressData.totalOriginalCount} - ${progressData.totalProgress.toFixed(2)}%`;
 
       // Display unknown sheets
       if (progressData.unknownSheets.length > 0) {
